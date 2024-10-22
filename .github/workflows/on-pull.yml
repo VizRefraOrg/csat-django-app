@@ -56,6 +56,6 @@ jobs:
           inlineScript: |
             az acr build -r ${REGISTRY_NAME} -g ${RESOURCE_GROUP} -t ${IMAGE_NAME}:latest .
         env:
-          REGISTRY_NAME: csatanalysisacr
+          REGISTRY_NAME: csatdjangoacr
           RESOURCE_GROUP: django-app
-          IMAGE_NAME: csat-streamlit-app
+          IMAGE_NAME: csat-django-app
