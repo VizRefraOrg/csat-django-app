@@ -44,7 +44,7 @@ resource "azurerm_linux_web_app" "django-webapp" {
       docker_image_tag = "latest"
     }
     container_registry_use_managed_identity = true
-#    health_check_path                       = "/accounts/heartbeat"
+    health_check_path                       = "/accounts/heartbeat"
   }
 
   app_settings = local.settings

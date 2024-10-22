@@ -96,8 +96,9 @@ def login(request):
             # try:
             params = dict(parse_qsl(urlsplit(url).query))
             redirect_url = params.get(b'next', settings.STREAMLIT_URL)
-            # logger.info(request.session.session_key)
-            # logger.info(csrf_token)
+            logger.info(request.session.session_key)
+            logger.info(csrf_token)
+            logger.info(redirect_url)
             return redirect(
                 f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
             )

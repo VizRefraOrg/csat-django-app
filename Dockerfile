@@ -43,4 +43,4 @@ ENV PATH                            "$APP_HOME/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-ENTRYPOINT [ "gunicorn", "greatcart.wsgi:application", "--workers", "1", "--threads", "4", "--timeout", "0", "--log-level", "INFO", "--bind", "0.0.0.0:8000" ]
+ENTRYPOINT [ "gunicorn", "greatcart.wsgi:application", "--workers", "1", "--threads", "4", "--timeout", "0", "--log-level", "debug", "--bind", "0.0.0.0:8000" ]
