@@ -1,0 +1,54 @@
+name: 'On pull request'
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/on-pull.yml
+      - app/**
+      - Dockerfile
+      - poetry.lock
+      - pyproject.toml
+
+permissions:
+  contents: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: "python-skeleton-template"
+    steps:
+      - name: 'Checkout repo'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: 'Check Python linting'
+        uses: chartboost/ruff-action@v1
+        id: ruff-check
+        with:
+          version: 0.4.3
+          src: './app'
+          args: 'check --fix'
+
+      - name: 'Build and run pytest'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          target: pytest
+          tags: ${{ env.IMAGE_NAME }}:test
+
+      - name: 'Extract report'
+        run: |
+          docker run -v /tmp:/tmp ${{ env.IMAGE_NAME }}:test poetry run coverage run -m pytest --junitxml=/tmp/pytest.xml
+          docker run -v /tmp:/tmp ${{ env.IMAGE_NAME }}:test poetry run coverage xml -o /tmp/coverage.xml
+
+      - name: 'Pytest coverage comment'
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-xml-coverage-path: /tmp/coverage.xml
+          junitxml-path: /tmp/pytest.xml
