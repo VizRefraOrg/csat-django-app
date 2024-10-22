@@ -106,6 +106,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.prod
 .venv
 env/
 venv/
@@ -146,3 +147,12 @@ cython_debug/
 
 #ruff
 /.ruff_cache/
+
+### Django ###
+*.pyc
+media
+
+#terraform
+*.terraform*
+*.tfstate*
+/logs/

@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED True
 ENV APP_HOME            /app
 WORKDIR                 $APP_HOME
 
-RUN apt-get update && rm -rf /root/.cache && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y libmagic1 && rm -rf /root/.cache && rm -rf /var/cache/apk/*
 
 FROM base as poetry
 
@@ -27,18 +27,20 @@ RUN poetry install --no-cache --no-interaction --no-ansi --no-root
 
 COPY ./app/src          ./src
 
-FROM poetry as pytest
-
-RUN poetry install --no-ansi --no-root --with test
-COPY ./app/tests        ./tests
-
-RUN poetry run coverage run -m pytest && poetry run coverage report -m
+#FROM poetry as pytest
+#
+#RUN poetry install --no-ansi --no-root --with test
+#COPY ./app/tests        ./tests
+#
+#RUN poetry run coverage run -m pytest && poetry run coverage report -m
 
 FROM base as app
 
 COPY --from=poetry $APP_HOME/.venv  $APP_HOME/.venv
-COPY --from=poetry $APP_HOME/src    $APP_HOME/src
+COPY --from=poetry $APP_HOME/src    $APP_HOME/
 
 ENV PATH                            "$APP_HOME/.venv/bin:$PATH"
 
-ENTRYPOINT [ "python" ]
+EXPOSE 8000
+
+ENTRYPOINT [ "gunicorn", "greatcart.wsgi:application", "--workers", "1", "--threads", "4", "--timeout", "0", "--log-level", "INFO", "--bind", "0.0.0.0:8000" ]
