@@ -1,4 +1,4 @@
-# python-skeleton-template
+# csat-django-app
 
 ## 1. How to run locally?
 

@@ -21,5 +21,16 @@ build_local:
 run_local:
 	echo "Run ${PROJECT_DIR}:local locally"
 	docker run --env-file .env \
-		-v ./logs:/app/logs \
-		--rm ${PROJECT_DIR}:local /app/src/main.py
+		-p 8000:8000 \
+		--rm ${PROJECT_DIR}:local
+
+build_push_image:
+	echo "Login into ${REGISTRY_NAME}"
+	az acr login -n ${REGISTRY_NAME}
+	echo "Build and push image to ${REGISTRY_NAME}"
+	az acr build -r ${REGISTRY_NAME} -g ${RESOURCE_GROUP} --subscription ${SUBSCRIPTION_ID} -t ${PROJECT_DIR}:latest .
+
+create_sa:
+	az ad sp create-for-rbac --name "${PROJECT_DIR}-github" --role contributor \
+		--scopes /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP} \
+        --sdk-auth

@@ -10,6 +10,16 @@ on:
       - poetry.lock
       - pyproject.toml
 
+  push:
+    branches:
+      - main
+    paths:
+      # - .github/workflows/on-pull.yml
+      - app/**
+      - Dockerfile
+      - poetry.lock
+      - pyproject.toml
+
 permissions:
   contents: write
   checks: write
@@ -34,21 +44,18 @@ jobs:
           src: './app'
           args: 'check --fix'
 
-      - name: 'Build and run pytest'
-        uses: docker/build-push-action@v5
+      - name: Azure login
+        uses: azure/login@v2.2.0
         with:
-          context: .
-          push: false
-          target: pytest
-          tags: ${{ env.IMAGE_NAME }}:test
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: 'Extract report'
-        run: |
-          docker run -v /tmp:/tmp ${{ env.IMAGE_NAME }}:test poetry run coverage run -m pytest --junitxml=/tmp/pytest.xml
-          docker run -v /tmp:/tmp ${{ env.IMAGE_NAME }}:test poetry run coverage xml -o /tmp/coverage.xml
-
-      - name: 'Pytest coverage comment'
-        uses: MishaKav/pytest-coverage-comment@main
+      - name: Build & push the image to ACR
+        uses: azure/CLI@v2.1.0
         with:
-          pytest-xml-coverage-path: /tmp/coverage.xml
-          junitxml-path: /tmp/pytest.xml
+          azcliversion: latest
+          inlineScript: |
+            az acr build -r ${REGISTRY_NAME} -g ${RESOURCE_GROUP} -t ${IMAGE_NAME}:latest .
+        env:
+          REGISTRY_NAME: csatdjangoacr
+          RESOURCE_GROUP: django-app
+          IMAGE_NAME: csat-django-app
