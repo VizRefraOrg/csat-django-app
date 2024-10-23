@@ -8,7 +8,7 @@ variable "resource_group" {
 }
 
 variable "app_name" {
-  default = "csat-streamlit-auth"
+  default = "csat-streamlit-admin"
 }
 
 variable "image_name" {
