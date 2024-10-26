@@ -355,16 +355,6 @@ files = [
 ]
 
 [[package]]
-name = "libmagic"
-version = "1.0"
-description = "libmagic bindings"
-optional = false
-python-versions = "*"
-files = [
-    {file = "libmagic-1.0.tar.gz", hash = "sha256:649f1ce7fb7c92796badbb812555e4a926351da4f5cdf82e810b5cd371aedf8d"},
-]
-
-[[package]]
 name = "loguru"
 version = "0.7.2"
 description = "Python logging made (stupidly) simple"
@@ -861,4 +851,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "2c96425551df0967a06913ff91f93cd62884ceca706fa156eb7a48333c03260d"
+content-hash = "5fed40a3f2bf4fe8748db426c80b751c8a017c2e7025b7cd36809df315450fc7"
