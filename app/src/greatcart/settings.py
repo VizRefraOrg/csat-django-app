@@ -125,8 +125,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = "static/"
+# STATIC_ROOT = BASE_DIR / "static"
+STATIC_ROOT = "/var/www/vivaboard.ai/static/"
+
 STATICFILES_DIRS = [
     BASE_DIR / "static",
     "greatcart/static",
@@ -162,4 +164,4 @@ STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
 STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID")
 
 STRIPE_PRICING_TABLE = '<script async src="https://js.stripe.com/v3/pricing-table.js"></script><stripe-pricing-table pricing-table-id="%s" publishable-key="%s"></stripe-pricing-table>' % (
-STRIPE_PRICING_TABLE_ID, STRIPE_PUBLIC_KEY)
+    STRIPE_PRICING_TABLE_ID, STRIPE_PUBLIC_KEY)
