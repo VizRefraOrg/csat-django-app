@@ -67,7 +67,7 @@ class Account(AbstractBaseUser):
     last_name = models.CharField(max_length=50)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=100, unique=True)
-    phone_number = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=100, blank=True)
     profile_photo = models.ImageField(upload_to=user_profile_photo_path, null=True, blank=True)
 
     # required
