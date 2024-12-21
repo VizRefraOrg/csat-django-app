@@ -39,7 +39,7 @@ SECRET_KEY = env.str(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
 
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
+ALLOWED_HOSTS = env.str("DJANGO_ALLOWED_HOSTS").split(",")
 CSRF_TRUSTED_ORIGINS = env.str("CSRF_TRUSTED_ORIGINS").split(",")
 
 # Application definition
@@ -125,10 +125,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
+STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "static"
+
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
     "greatcart/static",
 ]
 
@@ -143,12 +143,13 @@ MESSAGE_TAGS = {
 }
 
 # SMTP Configuration
-# EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-# EMAIL_HOST = env.str("EMAIL_HOST")
-# EMAIL_PORT = env.int("EMAIL_PORT")
-# EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-# EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
-# EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
+EMAIL_BACKEND = env.str("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env.str("EMAIL_HOST")
+EMAIL_PORT = env.int("EMAIL_PORT")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", "webmaster@localhost")
 
 #
 STREAMLIT_URL = env.str("STREAMLIT_URL", default="http://20.119.102.6:8501")
@@ -161,4 +162,4 @@ STRIPE_SECRET_KEY = env.str("STRIPE_SECRET_KEY")
 STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID")
 
 STRIPE_PRICING_TABLE = '<script async src="https://js.stripe.com/v3/pricing-table.js"></script><stripe-pricing-table pricing-table-id="%s" publishable-key="%s"></stripe-pricing-table>' % (
-STRIPE_PRICING_TABLE_ID, STRIPE_PUBLIC_KEY)
+    STRIPE_PRICING_TABLE_ID, STRIPE_PUBLIC_KEY)
