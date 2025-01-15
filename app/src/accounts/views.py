@@ -3,7 +3,6 @@ import os
 from urllib.parse import parse_qsl, urlsplit
 
 import magic
-import requests
 from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
@@ -43,12 +42,13 @@ def register(request):
             phone_number = form.cleaned_data["phone_number"]
             email = form.cleaned_data["email"]
             password = form.cleaned_data["password"]
-            username = email.split("@")[0]
-            user = Account.objects.create_user(
+            # username = email.split("@")[0]
+            user: Account = Account.objects.create_user(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                username=username,
+                # phone_number=phone_number,
+                username=email,
                 password=password,
             )
             user.phone_number = phone_number
@@ -89,19 +89,23 @@ def login(request):
         # logger.info(user)
         if user is not None:
             auth.login(request, user)
-            messages.success(request, "You are logged in.")
+            # messages.success(request, "You are logged in.")
             csrf_token = get_token(request)
             # email_encode = base64.b64encode(email.encode("ascii"))
             url = request.META.get("HTTP_REFERER")
-            # try:
             params = dict(parse_qsl(urlsplit(url).query))
             redirect_url = params.get(b'next', settings.STREAMLIT_URL)
             # logger.info(request.session.session_key)
             # logger.info(csrf_token)
             # logger.info(redirect_url)
-            return redirect(
-                f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
-            )
+
+            if user.subscription and user.subscription.status:
+                return redirect(
+                    f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
+                )
+            else:
+                messages.info(request, "Please subscribe a plan. You could have 3 days trial!")
+                return redirect("user_profile")
         else:
             messages.error(request, "Invalid login credentials")
             return redirect("login")
@@ -318,17 +322,20 @@ def delete_account(request):
 
 @login_required
 def redirect_to_analysis(request):
+    user = request.user
+    if not user.subscription or not user.subscription.status:
+        return redirect("user_profile")
+
     csrf_token = get_token(request)
     url = request.META.get("HTTP_REFERER")
     try:
-        query = requests.utils.urlparse(url).query
-        params = dict(x.split("=") for x in query.split("&"))
-        if "next" in params:
-            nextPage = params["next"]
-            return redirect(
-                f"{nextPage}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
-            )
-    except Exception:
+        params = dict(parse_qsl(urlsplit(url).query))
+        redirect_url = params.get(b'next', settings.STREAMLIT_URL)
+        return redirect(
+            f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
+        )
+    except Exception as e:
+        logger.error(e)
         return redirect(
             f"{settings.STREAMLIT_URL}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
         )

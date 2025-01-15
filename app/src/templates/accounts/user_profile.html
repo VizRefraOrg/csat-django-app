@@ -2,114 +2,136 @@
 {% load static %}
 
 {% block content %}
-  {% include 'includes/alerts.html' %}
-  <section class="section-content padding-y bg">
+{% include 'includes/alerts.html' %}
+<section class="section-content padding-y bg">
     <div class="container">
-      <div class="row">
-        <aside class="col-md-3">
-          <ul class="nav nav-pills flex-column" id="myTab" role="tablist">
-            <li class="nav-item">
-              <a class="nav-link active" id="membership-tab" data-toggle="tab" href="#membership" role="tab"
-                 aria-controls="membership" aria-selected="true">Your Membership</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab" aria-controls="billing"
-                 aria-selected="false">Update Billing Card</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile"
-                 aria-selected="false">Edit Your Profile</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" id="analysis-tab" data-toggle="tab" href="#analysis" role="tab"
-                 aria-controls="analysis" aria-selected="false">Start Analysis</a>
-            </li>
-          </ul>
-          <br>
-          <a class="btn btn-light btn-block" href="{% url 'logout' %}"> <i class="fa fa-power-off"></i> <span
-                  class="text">Log out</span> </a>
-        </aside>
-        <main class="col-md-9">
-          <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="membership" role="tabpanel" aria-labelledby="membership-tab">
-              <h4>Your Membership</h4>
-              <div class="row">
-                  {% if user.subscription %}
-                      <div class="col-md-8">
+        <div class="row">
+            <aside class="col-md-3">
+                <ul class="nav nav-pills flex-column" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="membership-tab" data-toggle="tab" href="#membership" role="tab"
+                           aria-controls="membership" aria-selected="true">Your Membership</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab"
+                           aria-controls="billing"
+                           aria-selected="false">Update Billing Card</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
+                           aria-controls="profile"
+                           aria-selected="false">Edit Your Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="analysis-tab" data-toggle="tab" href="#analysis" role="tab"
+                           aria-controls="analysis" aria-selected="false">Start Analysis</a>
+                    </li>
+                </ul>
+                <br>
+                <a class="btn btn-light btn-block" href="{% url 'logout' %}"> <i class="fa fa-power-off"></i> <span
+                        class="text">Log out</span> </a>
+            </aside>
+            <main class="col-md-9">
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active" id="membership" role="tabpanel"
+                         aria-labelledby="membership-tab">
+                        <h4>Your Membership</h4>
                         <div class="row">
-                        <br>
-                            <div class="col-md-9">
-                                <p>Membership: <span class="badge badge-success">{{ request.user.subscription.plan.name|title }}</span></p>
-                                <p>Status: <span>{% if request.user.subscription.status %}Active{% else %}Inactive{% endif %}</span></p>
-                                <p>Expiration / Renewal Date: <span>{{ request.user.subscription.end_at|date:"F j, Y" }}</span> </p>
+                            {% if user.subscription and user.subscription.status%}
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <br>
+                                    <div class="col-md-9">
+                                        <p>Membership: <span class="badge badge-success">{{ request.user.subscription.plan.name|title }}</span>
+                                        </p>
+                                        <p>Status: <span class="badge badge-success">{{ request.user.subscription.stripe_status|title }}</span>
+                                        </p>
+                                        <p>Plan: <span class="badge badge-success">{{ request.user.subscription.get_recurring_display|title }}</span>
+                                        </p>
+                                        <p>Expiration / Renewal Date: <span>{{ request.user.subscription.end_at|date:"F j, Y" }}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="row">
+                                    <a class="btn btn-primary" href="{{ request.user.stripe_portal }}" role="button">Manage
+                                        Your Membership</a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-md-12">
+                                <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+                                <stripe-pricing-table customer-email="{{ request.user.email }}"
+                                                      pricing-table-id="{{ pricing_table_id }}"
+                                                      publishable-key="{{ public_key }}"></stripe-pricing-table>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                        <h4>Update Billing Card</h4>
+                        <p>Form to update your billing card.</p>
+                    </div>
+                    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <h4>Edit Your Profile</h4>
+                        {{ form.errors }}
+                        <form action="{% url 'user_profile' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="id_first_name">First Name</label>
+                                        {{ form.first_name }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="id_last_name">Last Name</label>
+                                        {{ form.last_name }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_email">Email address</label>
+                                {{ form.email }}
+                            </div>
+                            <br>
+                            <div class="form-group">
+                                <label for="id_profile_photo">Your profile photo</label>
+                                <br>
+                                {{ form.profile_photo }}
+                            </div>
+                            <br>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a class="btn btn-danger" href="{% url 'delete-account' %}" role="button">Delete
+                                    Account</a>
+                            </div>
+
+                            <div class="col-md-6">
+                                <a class="btn btn-primary" href="{% url 'resetPassword' %}" role="button">Reset
+                                    Password</a>
                             </div>
                         </div>
-                      </div>
-                      <div class="col-md-4">
-                          <div class="row">
-                            <a class="btn btn-primary" href="{{ request.user.stripe_portal }}" role="button">Manage Your Membership</a>
-                          </div>
+                    </div>
+                    <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
+                        <h4>Start Analysis</h4>
+                        {% if user.subscription and user.subscription.status %}
+                        <a class="btn btn-primary" href="{% url 'redirect-to-analysis' %}">Open Dashboard</a>
+                        {% else %}
+                        <div class="col-md-12">
+                            <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+                            <stripe-pricing-table customer-email="{{ request.user.email }}"
+                                                  pricing-table-id="{{ pricing_table_id }}"
+                                                  publishable-key="{{ public_key }}"></stripe-pricing-table>
                         </div>
-                  {% else %}
-                    <div class="col-md-12">
-                      <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-                      <stripe-pricing-table customer-email="{{ request.user.email }}" pricing-table-id="{{ pricing_table_id }}" publishable-key="{{ public_key }}"></stripe-pricing-table>
+                        {% endif %}
                     </div>
-                  {% endif %}
-              </div>
-            </div>
-            <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
-              <h4>Update Billing Card</h4>
-              <p>Form to update your billing card.</p>
-            </div>
-            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-              <h4>Edit Your Profile</h4>
-              {{ form.errors }}
-              <form action="{% url 'user_profile' %}" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                  <div class="row">
-                    <div class="col-md-6">
-                      <label for="id_first_name">First Name</label>
-                      {{ form.first_name }}
-                    </div>
-                    <div class="col-md-6">
-                      <label for="id_last_name">Last Name</label>
-                      {{ form.last_name }}
-                    </div>
-                  </div>
                 </div>
-                <div class="form-group">
-                  <label for="id_email">Email address</label>
-                  {{ form.email }}
-                </div>
-                <br>
-                <div class="form-group">
-                  <label for="id_profile_photo">Your profile photo</label>
-                  <br>
-                  {{ form.profile_photo }}
-                </div>
-                <br>
-                <button type="submit" class="btn btn-primary">Submit</button>
-              </form>
-              <hr>
-              <div class="row">
-                <div class="col-md-6">
-                  <a class="btn btn-danger" href="{% url 'delete-account' %}" role="button">Delete Account</a>
-                </div>
-
-                <div class="col-md-6">
-                  <a class="btn btn-primary" href="{% url 'resetPassword' %}" role="button">Reset Password</a>
-                </div>
-              </div>
-            </div>
-            <div class="tab-pane fade" id="analysis" role="tabpanel" aria-labelledby="analysis-tab">
-              <h4>Start Analysis</h4>
-              <a class="btn btn-primary" href="{% url 'redirect-to-analysis' %}">Start Analysis</a>
-            </div>
-          </div>
-        </main>
-      </div>
+            </main>
+        </div>
     </div>
-  </section>
+</section>
 {% endblock %}

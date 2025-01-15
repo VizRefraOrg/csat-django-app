@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 
-from subscriptions.views import SubscriptionViewSet
+# from subscriptions.views import SubscriptionViewSet
+from . import views
 
-router = DefaultRouter()
-router.register('stripe', SubscriptionViewSet, basename='stripe_webhooks')
-urlpatterns = router.urls
+urlpatterns = [
+    path("webhook", views.collect_stripe_webhook, name="webhook")
+]
