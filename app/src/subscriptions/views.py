@@ -54,7 +54,7 @@ def _update_plan_record(product_event) -> bool:
             SubscriptionPlan.objects.update(
                 name=stripe_product.name,
                 type=stripe_product.active,
-                stripe_product_id=stripe_product.id,
+                # stripe_product_id=stripe_product.id,
                 live_mode=stripe_product.livemode
             )
         else:
