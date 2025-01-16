@@ -108,13 +108,14 @@ class Account(AbstractBaseUser):
     def subscription(self):
         return self.subscriptions.select_related("plan").first()
 
-    @property
-    def stripe_portal(self):
+    # @property
+    def stripe_portal(self, return_url: str = None):
         from stripe.billing_portal import Session
-
         if self.subscription:
             portal_session = Session.create(
-                customer=self.subscription.stripe_customer_id, api_key=settings.STRIPE_SECRET_KEY
+                customer=self.subscription.stripe_customer_id,
+                api_key=settings.STRIPE_SECRET_KEY,
+                return_url=return_url
             )
             return portal_session.url
 

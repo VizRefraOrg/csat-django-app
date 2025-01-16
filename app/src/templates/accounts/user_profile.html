@@ -12,24 +12,34 @@
                         <a class="nav-link active" id="membership-tab" data-toggle="tab" href="#membership" role="tab"
                            aria-controls="membership" aria-selected="true">Your Membership</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab"
-                           aria-controls="billing"
-                           aria-selected="false">Update Billing Card</a>
-                    </li>
+                    <!--                    <li class="nav-item">-->
+                    <!--                        <a class="nav-link" id="billing-tab" data-toggle="tab" href="#billing" role="tab"-->
+                    <!--                           aria-controls="billing"-->
+                    <!--                           aria-selected="false">Update Billing Card</a>-->
+                    <!--                    </li>-->
                     <li class="nav-item">
                         <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab"
                            aria-controls="profile"
                            aria-selected="false">Edit Your Profile</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="analysis-tab" data-toggle="tab" href="#analysis" role="tab"
-                           aria-controls="analysis" aria-selected="false">Start Analysis</a>
-                    </li>
+<!--                    <li class="nav-item">-->
+<!--                        <a class="nav-link" id="analysis-tab" data-toggle="tab" href="#analysis" role="tab"-->
+<!--                           aria-controls="analysis" aria-selected="false">Start Analysis</a>-->
+<!--                    </li>-->
                 </ul>
                 <br>
-                <a class="btn btn-light btn-block" href="{% url 'logout' %}"> <i class="fa fa-power-off"></i> <span
-                        class="text">Log out</span> </a>
+                <form method="POST" action="{% url 'redirect-to-analysis' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-light btn-block" type="submit"><i class="fa fa-home"></i> <span
+                            class="text">Start Analysis</span></button>
+                </form>
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-light btn-block" type="submit"><i class="fa fa-power-off"></i> <span
+                            class="text">Log out</span></button>
+                </form>
+<!--                <a class="btn btn-light btn-block" href="{% url 'logout' %}"> <i class="fa fa-power-off"></i> <span-->
+<!--                        class="text">Log out</span> </a>-->
             </aside>
             <main class="col-md-9">
                 <div class="tab-content" id="myTabContent">
@@ -55,8 +65,10 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="row">
-                                    <a class="btn btn-primary" href="{{ request.user.stripe_portal }}" role="button">Manage
-                                        Your Membership</a>
+                                    <form method="POST" action="{% url 'redirect-to-stripe' %}">
+                                        {% csrf_token %}
+                                        <button class="btn btn-primary" type="submit">Manage Your Membership</button>
+                                    </form>
                                 </div>
                             </div>
                             {% else %}

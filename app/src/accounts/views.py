@@ -6,6 +6,7 @@ import magic
 from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 
 # Account Activation
@@ -283,7 +284,8 @@ class SelectFileView(View):
             return response
 
 
-class UserProfileView(TemplateView):
+class UserProfileView(LoginRequiredMixin, TemplateView):
+    login_url = 'login'
     template_name = "accounts/user_profile.html"
 
     def get_context_data(self, **kwargs):
@@ -298,6 +300,7 @@ class UserProfileView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         current_user = self.request.user
+
         form = UserProfileUpdateForm(request.POST, request.FILES, instance=current_user)
         if form.is_valid():
             form.save()
@@ -339,3 +342,12 @@ def redirect_to_analysis(request):
         return redirect(
             f"{settings.STREAMLIT_URL}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
         )
+
+
+@login_required(login_url='login')
+def redirect_to_stripe(request):
+    user = request.user
+    if not user.subscription or not user.subscription.status:
+        return redirect("user_profile")
+
+    return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))
