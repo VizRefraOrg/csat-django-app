@@ -188,7 +188,7 @@ def resetpassword_validate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         request.session["uid"] = uid
         messages.success(request, "Please reset your password")
-        return redirect("resetPassword")
+        return render(request, "accounts/resetPassword.html")
     else:
         messages.error(request, "This Link has been expired")
         return redirect("login")
@@ -199,9 +199,16 @@ def resetPassword(request):
         password = request.POST["password"]
         confirm_password = request.POST["confirm_password"]
 
-        if password == confirm_password:
-            user_id = request.user.id
-            user = Account.objects.get(pk=user_id)
+        try:
+            uid = request.session.get('uid')
+            user = Account._default_manager.get(pk=uid)
+        except (TabError, ValueError, OverflowError, Account.DoesNotExist):
+            user = None
+
+        if not user:
+            messages.error(request, "Cannot reset your password!")
+            return redirect("login")
+        elif password == confirm_password:
             user.set_password(password)
             user.save()
             messages.success(request, "Password reset successful")
