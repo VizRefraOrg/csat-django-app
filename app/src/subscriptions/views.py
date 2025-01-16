@@ -51,14 +51,12 @@ def _update_plan_record(product_event) -> bool:
         stripe_product = client.products.retrieve(product_event.id)
         sub_plan = SubscriptionPlan.objects.filter(stripe_product_id=stripe_product.id)
         if sub_plan:
-            SubscriptionPlan.objects.update(
-                name=stripe_product.name,
-                type=stripe_product.active,
-                # stripe_product_id=stripe_product.id,
-                live_mode=stripe_product.livemode
-            )
+            sub_plan.name = stripe_product.name
+            sub_plan.type = stripe_product.active
+            sub_plan.live_mode = stripe_product.livemode
+            sub_plan.save()
         else:
-            SubscriptionPlan.objects.save(
+            SubscriptionPlan.objects.create(
                 name=stripe_product.name,
                 type=stripe_product.active,
                 stripe_product_id=stripe_product.id,
@@ -102,6 +100,7 @@ def _update_subscription_record(subscription_event) -> bool:
 
     user_subscription = Subscription.objects.filter(user=user).first()
     if not user_subscription:
+        logger.debug(f"Creating user subscription: {subscription_id} | {subscription.status} | {customer_id}")
         Subscription.objects.create(
             user=user,
             stripe_subscription_id=subscription_id,
@@ -114,15 +113,15 @@ def _update_subscription_record(subscription_event) -> bool:
             recurring=recurring,
         )
     else:
-        Subscription.objects.update(
-            user=user,
-            stripe_subscription_id=subscription_id,
-            stripe_customer_id=customer_id,
-            stripe_status=subscription.status,
-            start_at=start,
-            end_at=end,
-            status=status,
-            plan=plan,
-            recurring=recurring,
-        )
+        logger.debug(f"Updating user subscription: {subscription_id} | {subscription.status} | {customer_id}")
+        user_subscription.stripe_subscription_id = subscription_id
+        user_subscription.stripe_customer_id = customer_id
+        user_subscription.stripe_status = subscription.status
+        user_subscription.start_at = start
+        user_subscription.end_at = end
+        user_subscription.status = status
+        user_subscription.plan = plan
+        user_subscription.recurring = recurring
+
+        user_subscription.save()
     return 'success'
