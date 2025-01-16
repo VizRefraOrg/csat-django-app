@@ -49,7 +49,7 @@ def collect_stripe_webhook(request) -> JsonResponse:
 def _update_plan_record(product_event) -> bool:
     try:
         stripe_product = client.products.retrieve(product_event.id)
-        sub_plan = SubscriptionPlan.objects.filter(stripe_product_id=stripe_product.id)
+        sub_plan = SubscriptionPlan.objects.filter(stripe_product_id=stripe_product.id).first()
         if sub_plan:
             sub_plan.name = stripe_product.name
             sub_plan.type = stripe_product.active
