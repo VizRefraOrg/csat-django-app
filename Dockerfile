@@ -46,4 +46,4 @@ ENV PATH                                      "$APP_HOME/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-ENTRYPOINT [ "entrypoint.sh" ]
+ENTRYPOINT [ "./entrypoint.sh" ]
