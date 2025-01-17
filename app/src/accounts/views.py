@@ -354,7 +354,7 @@ def redirect_to_analysis(request):
 @login_required(login_url='login')
 def redirect_to_stripe(request):
     user = request.user
-    if not user.subscription or not user.subscription.status:
+    if not user.subscription:
         return redirect("user_profile")
 
     return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))

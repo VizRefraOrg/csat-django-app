@@ -47,14 +47,14 @@
                          aria-labelledby="membership-tab">
                         <h4>Your Membership</h4>
                         <div class="row">
-                            {% if user.subscription and user.subscription.status%}
+                            {% if user.subscription%}
                             <div class="col-md-8">
                                 <div class="row">
                                     <br>
                                     <div class="col-md-9">
                                         <p>Membership: <span class="badge badge-success">{{ request.user.subscription.plan.name|title }}</span>
                                         </p>
-                                        <p>Status: <span class="badge badge-success">{{ request.user.subscription.stripe_status|title }}</span>
+                                        <p>Status: <span class="{% if request.user.subscription.stripe_status == 'active' %}badge badge-success{% else %}badge badge-warning{% endif %}">{{ request.user.subscription.stripe_status|title }}</span>
                                         </p>
                                         <p>Plan: <span class="badge badge-success">{{ request.user.subscription.get_recurring_display|title }}</span>
                                         </p>
