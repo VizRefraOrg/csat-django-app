@@ -61,6 +61,7 @@ class Account(AbstractBaseUser):
     MEMBERSHIP_STATUS_CHOICES = (
         ("Active", "Active"),
         ("Expired", "Expired"),
+        ("Cancelled", "Cancelled")
     )
 
     first_name = models.CharField(max_length=50)
@@ -78,9 +79,9 @@ class Account(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
 
-    membership = models.CharField(max_length=50, default='', choices=MEMBERSHIP_CHOICES)
-    membership_status = models.CharField(max_length=50, default='', choices=MEMBERSHIP_STATUS_CHOICES)
-    membership_expiration_date = models.DateField(null=True, blank=True)
+    # membership = models.CharField(max_length=50, default='', choices=MEMBERSHIP_CHOICES)
+    # membership_status = models.CharField(max_length=50, default='', choices=MEMBERSHIP_STATUS_CHOICES)
+    # membership_expiration_date = models.DateField(null=True, blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
@@ -91,7 +92,7 @@ class Account(AbstractBaseUser):
         return self.email
 
     def has_perm(
-        self, perm, obj=None
+            self, perm, obj=None
     ):  # This must be mentioned when creating Custom Model
         return self.is_admin
 
@@ -107,13 +108,14 @@ class Account(AbstractBaseUser):
     def subscription(self):
         return self.subscriptions.select_related("plan").first()
 
-    @property
-    def stripe_portal(self):
+    # @property
+    def stripe_portal(self, return_url: str = None):
         from stripe.billing_portal import Session
-
         if self.subscription:
             portal_session = Session.create(
-                customer=self.subscription.stripe_customer_id, api_key=settings.STRIPE_SECRET_KEY
+                customer=self.subscription.stripe_customer_id,
+                api_key=settings.STRIPE_SECRET_KEY,
+                return_url=return_url
             )
             return portal_session.url
 
@@ -128,12 +130,10 @@ def user_directory_path(instance, filename):
 class UploadedFile(models.Model):
     file = models.FileField(upload_to=user_directory_path)
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(
-        Account, on_delete=models.CASCADE, related_name="uploaded_files"
-    )
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="uploaded_files")
 
     def __str__(self):
-        return self.file.name
+        return self.file
 
     def get_file_url(self):
         return os.path.join(settings.MEDIA_ROOT, self.file.name)

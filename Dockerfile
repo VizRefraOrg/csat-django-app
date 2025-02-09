@@ -1,5 +1,5 @@
 # Use the official lightweight Python image.
-FROM python:3.11-slim as base
+FROM python:3.11-slim AS base
 
 # Allow statements and log messages to immediately appear in the Knative logs
 ENV PYTHONUNBUFFERED True
@@ -10,7 +10,7 @@ WORKDIR                 $APP_HOME
 
 RUN apt-get update && apt-get install -y libmagic1 && rm -rf /root/.cache && rm -rf /var/cache/apk/*
 
-FROM base as poetry
+FROM base AS poetry
 
 ENV POETRY_HOME                     /opt/poetry
 ENV POETRY_VIRTUALENVS_IN_PROJECT   true
@@ -26,6 +26,7 @@ COPY ./poetry.lock      .
 RUN poetry install --no-cache --no-interaction --no-ansi --no-root
 
 COPY ./app/src          ./src
+COPY ./entrypoint.sh    .
 
 #FROM poetry as pytest
 #
@@ -34,13 +35,15 @@ COPY ./app/src          ./src
 #
 #RUN poetry run coverage run -m pytest && poetry run coverage report -m
 
-FROM base as app
+FROM base AS app
 
-COPY --from=poetry $APP_HOME/.venv  $APP_HOME/.venv
-COPY --from=poetry $APP_HOME/src    $APP_HOME/
+COPY --from=poetry $APP_HOME/.venv            $APP_HOME/.venv
+COPY --from=poetry $APP_HOME/src              $APP_HOME/
+COPY --from=poetry $APP_HOME/entrypoint.sh    $APP_HOME/
 
-ENV PATH                            "$APP_HOME/.venv/bin:$PATH"
+
+ENV PATH                                      "$APP_HOME/.venv/bin:$PATH"
 
 EXPOSE 8000
 
-ENTRYPOINT [ "gunicorn", "greatcart.wsgi:application", "--workers", "1", "--threads", "4", "--timeout", "0", "--log-level", "debug", "--bind", "0.0.0.0:8000" ]
+ENTRYPOINT [ "bash", "./entrypoint.sh" ]

@@ -835,6 +835,20 @@ docs = ["furo (>=2023.7.26)", "proselint (>=0.13)", "sphinx (>=7.1.2,!=7.3)", "s
 test = ["covdefaults (>=2.3)", "coverage (>=7.2.7)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7)", "packaging (>=23.1)", "pytest (>=7.4)", "pytest-env (>=0.8.2)", "pytest-freezer (>=0.4.8)", "pytest-mock (>=3.11.1)", "pytest-randomly (>=3.12)", "pytest-timeout (>=2.1)", "setuptools (>=68)", "time-machine (>=2.10)"]
 
 [[package]]
+name = "whitenoise"
+version = "6.8.2"
+description = "Radically simplified static file serving for WSGI applications"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "whitenoise-6.8.2-py3-none-any.whl", hash = "sha256:df12dce147a043d1956d81d288c6f0044147c6d2ab9726e5772ac50fb45d2280"},
+    {file = "whitenoise-6.8.2.tar.gz", hash = "sha256:486bd7267a375fa9650b136daaec156ac572971acc8bf99add90817a530dd1d4"},
+]
+
+[package.extras]
+brotli = ["brotli"]
+
+[[package]]
 name = "win32-setctime"
 version = "1.1.0"
 description = "A small Python utility to set file creation time on Windows"
@@ -851,4 +865,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "5fed40a3f2bf4fe8748db426c80b751c8a017c2e7025b7cd36809df315450fc7"
+content-hash = "515613dab1cf2f8d6f5292661bcd70d28fd93ae043090c162444f941299ef163"

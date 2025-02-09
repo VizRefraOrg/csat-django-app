@@ -23,4 +23,5 @@ urlpatterns = [
     path("user-profile/", views.UserProfileView.as_view(), name="user_profile"),
     path("delete-account/", views.delete_account, name="delete-account"),
     path("redirect-to-analysis/", views.redirect_to_analysis, name="redirect-to-analysis"),
+    path("redirect-to-stripe/", views.redirect_to_stripe, name="redirect-to-stripe")
 ]

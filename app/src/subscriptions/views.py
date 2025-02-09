@@ -1,75 +1,127 @@
 # -*- coding: utf-8 -*-
-import time as t
+import os
 from datetime import datetime
 
+import stripe
 from accounts.models import Account
-from django.conf import settings
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from stripe import AuthenticationError, InvalidRequestError, StripeClient
+from django.http import JsonResponse
+from django.utils.timezone import make_aware
+from django.views.decorators.csrf import csrf_exempt
+from greatcart import settings
+from loguru import logger
+from stripe import StripeClient
 
 from subscriptions.models import Subscription, SubscriptionPlan
 
+client = StripeClient(settings.STRIPE_SECRET_KEY)
 
-class SubscriptionViewSet(viewsets.GenericViewSet):
-    authentication_classes = []  # disables authentication
-    permission_classes = []  # disables permission
 
-    @action(detail=False, methods=['post'], url_name='subscription', url_path='subscription')
-    def subscription(self, request):
-        # Wait 10 seconds before check
-        t.sleep(10)
-        try:
-            client = StripeClient(settings.STRIPE_SECRET_KEY)
+@csrf_exempt
+def collect_stripe_webhook(request) -> JsonResponse:
+    """
+    Stripe sends webhook events to this endpoint.
+    We verify the webhook signature and updates the database record.
+    """
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    signature = request.META["HTTP_STRIPE_SIGNATURE"]
+    payload = request.body
 
-            subscription_id = request.data['data']['object']['id']
-            customer_id = request.data['data']['object']['customer']
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=payload, sig_header=signature, secret=webhook_secret
+        )
+        logger.debug(event.type)
+        if event.type.startswith("product."):
+            status = _update_plan_record(event.data.object)
+        elif event.type.startswith("customer.subscription."):
+            status = _update_subscription_record(event.data.object)
+        else:
+            status = "not applicable"
 
-            customer = client.customers.retrieve(customer_id)
-            subscription = client.subscriptions.retrieve(subscription_id)
+    except ValueError as e:  # Invalid payload.
+        raise e
+    except stripe.error.SignatureVerificationError as e:  # Invalid signature
+        raise e
 
-            user = Account.objects.get(email=customer.email)
-            plan = SubscriptionPlan.objects.get(stripe_product_id=subscription.plan.product)
+    return JsonResponse({'status': status})
 
-            start = datetime.fromtimestamp(subscription.current_period_start)
-            end = datetime.fromtimestamp(subscription.current_period_end)
 
-            user_subscription = Subscription.objects.filter(user=user).first()
+def _update_plan_record(product_event) -> bool:
+    try:
+        stripe_product = client.products.retrieve(product_event.id)
+        sub_plan = SubscriptionPlan.objects.filter(stripe_product_id=stripe_product.id).first()
+        if sub_plan:
+            sub_plan.name = stripe_product.name
+            sub_plan.type = stripe_product.active
+            sub_plan.live_mode = stripe_product.livemode
+            sub_plan.save()
+        else:
+            SubscriptionPlan.objects.create(
+                name=stripe_product.name,
+                type=stripe_product.active,
+                stripe_product_id=stripe_product.id,
+                live_mode=stripe_product.livemode
+            )
+        return True
+    except stripe._error.InvalidRequestError as e:
+        logger.error(e)
+        return False
 
-            if request.data['data']['object']['plan']['interval'] == 'year':
-                recurring = Subscription.RecurringType.YEAR.value
-            else:
-                recurring = Subscription.RecurringType.MONTH.value
 
-            try:
-                ['incomplete_expired', 'unpaid', 'canceled', 'paused'].index(subscription.status)
-                status = 0
-            except ValueError:
-                status = 1
+def _update_subscription_record(subscription_event) -> bool:
+    """
+    We update our database record based on the webhook event.
 
-            if user_subscription:
-                user_subscription.start_at = start
-                user_subscription.end_at = end
-                user_subscription.plan = plan
-                user_subscription.status = status
-                user_subscription.stripe_subscription_id = subscription_id
-                user_subscription.stripe_customer_id = customer_id
-                user_subscription.recurring = recurring
-                user_subscription.save()
-            else:
-                Subscription.objects.create(
-                    user=user,
-                    stripe_subscription_id=subscription_id,
-                    stripe_customer_id=customer_id,
-                    start_at=start,
-                    end_at=end,
-                    status=status,
-                    plan=plan,
-                    recurring=recurring,
-                )
+    Use these events to update your database records.
+    You could extend this to send emails, update user records, set up different access levels, etc.
+    """
 
-            return Response(True, status=200)
-        except (AuthenticationError, InvalidRequestError, Account.DoesNotExist, SubscriptionPlan.DoesNotExist, ValueError) as error:
-            print("Error: ", error)
-            return Response(False, status=200)
+    subscription_id = subscription_event.id
+    customer_id = subscription_event.customer
+
+    try:
+        customer = client.customers.retrieve(customer_id)
+        subscription = client.subscriptions.retrieve(subscription_id)
+        product = client.products.retrieve(subscription.plan.product)
+        plan = SubscriptionPlan.objects.get(stripe_product_id=product.id)
+    except stripe._error.InvalidRequestError as e:
+        logger.error(e)
+        return 'failed'
+
+    user = Account.objects.get(email=customer.email)
+    start = make_aware(datetime.fromtimestamp(subscription.current_period_start))
+    end = make_aware(datetime.fromtimestamp(subscription.current_period_end))
+    if subscription.plan.interval == 'year':
+        recurring = Subscription.RecurringType.YEAR.value
+    else:
+        recurring = Subscription.RecurringType.MONTH.value
+
+    status = int(subscription.status not in ['incomplete', 'incomplete_expired', 'unpaid', 'canceled', 'paused'])
+
+    user_subscription = Subscription.objects.filter(user=user).first()
+    if not user_subscription:
+        logger.debug(f"Creating user subscription: {subscription_id} | {subscription.status} | {customer_id}")
+        Subscription.objects.create(
+            user=user,
+            stripe_subscription_id=subscription_id,
+            stripe_customer_id=customer_id,
+            stripe_status=subscription.status,
+            start_at=start,
+            end_at=end,
+            status=status,
+            plan=plan,
+            recurring=recurring,
+        )
+    else:
+        logger.debug(f"Updating user subscription: {subscription_id} | {subscription.status} | {customer_id}")
+        user_subscription.stripe_subscription_id = subscription_id
+        user_subscription.stripe_customer_id = customer_id
+        user_subscription.stripe_status = subscription.status
+        user_subscription.start_at = start
+        user_subscription.end_at = end
+        user_subscription.status = status
+        user_subscription.plan = plan
+        user_subscription.recurring = recurring
+
+        user_subscription.save()
+    return 'success'

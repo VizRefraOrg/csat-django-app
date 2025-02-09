@@ -3,10 +3,10 @@ import os
 from urllib.parse import parse_qsl, urlsplit
 
 import magic
-import requests
 from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 
 # Account Activation
@@ -43,12 +43,13 @@ def register(request):
             phone_number = form.cleaned_data["phone_number"]
             email = form.cleaned_data["email"]
             password = form.cleaned_data["password"]
-            username = email.split("@")[0]
-            user = Account.objects.create_user(
+            # username = email.split("@")[0]
+            user: Account = Account.objects.create_user(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
-                username=username,
+                # phone_number=phone_number,
+                username=email,
                 password=password,
             )
             user.phone_number = phone_number
@@ -89,19 +90,23 @@ def login(request):
         # logger.info(user)
         if user is not None:
             auth.login(request, user)
-            messages.success(request, "You are logged in.")
+            # messages.success(request, "You are logged in.")
             csrf_token = get_token(request)
             # email_encode = base64.b64encode(email.encode("ascii"))
             url = request.META.get("HTTP_REFERER")
-            # try:
             params = dict(parse_qsl(urlsplit(url).query))
             redirect_url = params.get(b'next', settings.STREAMLIT_URL)
             # logger.info(request.session.session_key)
             # logger.info(csrf_token)
             # logger.info(redirect_url)
-            return redirect(
-                f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
-            )
+
+            if user.subscription and user.subscription.status:
+                return redirect(
+                    f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
+                )
+            else:
+                messages.info(request, "Please subscribe a plan. You could have 3 days trial!")
+                return redirect("user_profile")
         else:
             messages.error(request, "Invalid login credentials")
             return redirect("login")
@@ -183,7 +188,7 @@ def resetpassword_validate(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         request.session["uid"] = uid
         messages.success(request, "Please reset your password")
-        return redirect("resetPassword")
+        return render(request, "accounts/resetPassword.html")
     else:
         messages.error(request, "This Link has been expired")
         return redirect("login")
@@ -194,9 +199,16 @@ def resetPassword(request):
         password = request.POST["password"]
         confirm_password = request.POST["confirm_password"]
 
-        if password == confirm_password:
-            user_id = request.user.id
-            user = Account.objects.get(pk=user_id)
+        try:
+            uid = request.session.get('uid')
+            user = Account._default_manager.get(pk=uid)
+        except (TabError, ValueError, OverflowError, Account.DoesNotExist):
+            user = None
+
+        if not user:
+            messages.error(request, "Cannot reset your password!")
+            return redirect("login")
+        elif password == confirm_password:
             user.set_password(password)
             user.save()
             messages.success(request, "Password reset successful")
@@ -279,7 +291,8 @@ class SelectFileView(View):
             return response
 
 
-class UserProfileView(TemplateView):
+class UserProfileView(LoginRequiredMixin, TemplateView):
+    login_url = 'login'
     template_name = "accounts/user_profile.html"
 
     def get_context_data(self, **kwargs):
@@ -294,6 +307,7 @@ class UserProfileView(TemplateView):
 
     def post(self, request, *args, **kwargs):
         current_user = self.request.user
+
         form = UserProfileUpdateForm(request.POST, request.FILES, instance=current_user)
         if form.is_valid():
             form.save()
@@ -318,17 +332,29 @@ def delete_account(request):
 
 @login_required
 def redirect_to_analysis(request):
+    user = request.user
+    if not user.subscription or not user.subscription.status:
+        return redirect("user_profile")
+
     csrf_token = get_token(request)
     url = request.META.get("HTTP_REFERER")
     try:
-        query = requests.utils.urlparse(url).query
-        params = dict(x.split("=") for x in query.split("&"))
-        if "next" in params:
-            nextPage = params["next"]
-            return redirect(
-                f"{nextPage}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
-            )
-    except Exception:
+        params = dict(parse_qsl(urlsplit(url).query))
+        redirect_url = params.get(b'next', settings.STREAMLIT_URL)
+        return redirect(
+            f"{redirect_url}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
+        )
+    except Exception as e:
+        logger.error(e)
         return redirect(
             f"{settings.STREAMLIT_URL}?sessionid={request.session.session_key}&csrftoken={csrf_token}"
         )
+
+
+@login_required(login_url='login')
+def redirect_to_stripe(request):
+    user = request.user
+    if not user.subscription:
+        return redirect("user_profile")
+
+    return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))
