@@ -53,7 +53,19 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "accounts",
     "subscriptions",
+    'health_check',  # required
+    'health_check.db',  # stock Django health checkers
+    'health_check.cache',
+    'health_check.storage',
+    'health_check.contrib.migrations',
 ]
+
+HEALTH_CHECK = {
+    "SUBSETS": {
+        "startup": ["MigrationsHealthCheck", "DatabaseBackend"],
+        "liveness": ["DatabaseBackend"]
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

@@ -1,11 +1,9 @@
-# from django.shortcuts import render
-# from store.models import Product
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 
-# def home(request):
-#     products = Product.objects.all().filter(is_available=True)
+from greatcart import settings
 
-#     context = {
-#         'products' : products,
-#     }
 
-#     return render(request, 'home.html', context)
+@login_required
+def home(request):
+    return redirect(settings.STREAMLIT_URL)
