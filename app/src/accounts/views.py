@@ -141,12 +141,7 @@ def activate(request, uidb64, token):
         return redirect("register")
 
 
-@login_required(login_url="login")
-def dashboard(request):
-    return redirect(settings.STREAMLIT_URL)
-
-
-def forgotPassword(request):
+def forgot_password(request):
     if request.method == "POST":
         email = request.POST["email"]
         if Account.objects.filter(email=email).exists():
@@ -178,7 +173,7 @@ def forgotPassword(request):
     return render(request, "accounts/forgotPassword.html")
 
 
-def resetpassword_validate(request, uidb64, token):
+def reset_password_validate(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
         user = Account._default_manager.get(pk=uid)
@@ -194,7 +189,7 @@ def resetpassword_validate(request, uidb64, token):
         return redirect("login")
 
 
-def resetPassword(request):
+def reset_password(request):
     if request.method == "POST":
         password = request.POST["password"]
         confirm_password = request.POST["confirm_password"]
