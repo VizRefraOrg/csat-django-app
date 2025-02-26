@@ -1,4 +1,3 @@
-import hashlib
 import os
 from urllib.parse import parse_qsl, urlsplit
 
@@ -244,12 +243,6 @@ class FileUploadView(View):
             return JsonResponse({"error": "Failed to process the file"}, status=500)
 
 
-def create_checksum(file_path: str):
-    with open(file_path, 'rb') as rb:
-        data = rb.read()
-        return hashlib.md5(data).hexdigest()
-
-
 @login_required(login_url="login")
 def list_user_files(request):
     # logger.info(request.user)
@@ -260,7 +253,8 @@ def list_user_files(request):
             "file_name": os.path.basename(file.file.name),
             "uploaded_at": file.uploaded_at,
             "file_path": file.file.path,
-            "checksum": create_checksum(file.file.path)
+            "file_size": file.file_size,
+            "checksum": file.file_checksum
         }
         for file in user_files if os.path.exists(file.file.path)
     ]

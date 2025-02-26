@@ -1,3 +1,4 @@
+import hashlib
 import os
 from uuid import uuid4
 
@@ -137,3 +138,32 @@ class UploadedFile(models.Model):
 
     def get_file_url(self):
         return os.path.join(settings.MEDIA_ROOT, self.file.name)
+
+    @staticmethod
+    def sizify(value):
+        """
+        Simple kb/mb/gb size snippet for templates:
+
+        {{ product.file.size|sizify }}
+        """
+        # value = ing(value)
+        if value < 512000:
+            value = value / 1024.0
+            ext = 'Kb'
+        elif value < 4194304000:
+            value = value / 1048576.0
+            ext = 'Mb'
+        else:
+            value = value / 1073741824.0
+            ext = 'Gb'
+        return '%s %s' % (str(round(value, 2)), ext)
+
+    @property
+    def file_checksum(self):
+        with open(self.file.path, 'rb') as rb:
+            data = rb.read()
+            return hashlib.md5(data).hexdigest()
+
+    @property
+    def file_size(self):
+        return self.sizify(os.path.getsize(self.file.path))
