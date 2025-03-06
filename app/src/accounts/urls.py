@@ -1,13 +1,11 @@
 from django.urls import path
 
 from . import views
-from .views import google_auth_callback
 
 
 urlpatterns = [
     # path("heartbeat", views.heart_beat, name="heartbeat"),
     path("register/", views.register, name="register"),
-    path('auth/google/callback/', google_auth_callback, name='google_auth_callback'),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     # path("dashboard/", views.dashboard, name="dashboard"),
