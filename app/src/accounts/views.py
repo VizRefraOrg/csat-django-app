@@ -30,11 +30,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from django.contrib.auth import login
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.models import User
 import json
-import logging
-
 
 # logger = logging.getLogger(__name__)
 def heart_beat(request):
@@ -358,7 +356,6 @@ def redirect_to_stripe(request):
     return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))
 
 
-
 GOOGLE_CLIENT_ID = "163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
 
 @csrf_exempt
@@ -408,4 +405,3 @@ def google_auth_callback(request):
     except Exception as e:
         logger.exception("Unexpected server error")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-
