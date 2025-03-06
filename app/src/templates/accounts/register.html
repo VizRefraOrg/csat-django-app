@@ -31,7 +31,6 @@
                 </thead>
                 <tbody>
                     <tr><td><strong>Price</strong> (Monthly)</td><td class="text-center" style="font-size: larger; color: #6f899d;">$50</td><td class="text-center" style="font-size: larger; color: #6f899d;">$200</td></tr>
-
                     <tr><td><strong>Free Trial</strong></td><td class="text-center">3 days</td><td class="text-center">7 days</td></tr>
                     <tr><td><strong>Max Rows per project</strong></td><td class="text-center">50K</td><td class="text-center">100K</td></tr>
                     <tr><td><strong>Columns per project</strong></td><td class="text-center">10</td><td class="text-center">20</td></tr>
@@ -46,45 +45,8 @@
             </table>
         </article>
     </div>
-    
-<!-- ========================= SECTION CONTENT ========================= -->
-<section class="section-content padding-y">
 
-    <!-- Logo at the top center -->
-    <div class="text-center mb-4">
-        <img src="https://vivaboard.ai/wp-content/uploads/2024/11/logo.webp" alt="Logo" width="265">
-    </div>
-
-    <!-- ============================ PRICING TABLE  ================================= -->
-    <div class="card mx-auto" style="max-width:720px; margin-top:20px;">
-        <article class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <td><strong>Features</strong></td>
-                        <td class="text-center"><strong>Standard</strong></td>
-                        <td class="text-center"><strong>Enterprise</strong></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td><strong>Price</strong> (Monthly)</td><td class="text-center" style="font-size: larger; color: #6f899d;">$50</td><td class="text-center" style="font-size: larger; color: #6f899d;">$200</td></tr>
-
-                    <tr><td><strong>Free Trial</strong></td><td class="text-center">3 days</td><td class="text-center">7 days</td></tr>
-                    <tr><td><strong>Max Rows per project</strong></td><td class="text-center">50K</td><td class="text-center">100K</td></tr>
-                    <tr><td><strong>Columns per project</strong></td><td class="text-center">10</td><td class="text-center">20</td></tr>
-                    <tr><td><strong>24/7 Chat Support</strong></td><td class="text-center">-</td><td class="text-center">✓</td></tr>
-                    <tr><td><strong>Number of licensed users</strong></td><td class="text-center">1</td><td class="text-center">3</td></tr>
-                    <tr><td><strong>Data Backup</strong></td><td class="text-center">✓</td><td class="text-center">✓</td></tr>
-                    <tr><td><strong>Secure Microsoft Azure cloud</strong></td><td class="text-center">✓</td><td class="text-center">✓</td></tr>
-                    <tr><td><strong>Custom Integrations</strong></td><td class="text-center">-</td><td class="text-center">✓</td></tr>
-                    <tr><td><strong>Snowflake Support</strong></td><td class="text-center">-</td><td class="text-center">✓</td></tr>
-                    <tr><td><strong>Dedicated Manager</strong></td><td class="text-center">-</td><td class="text-center">✓</td></tr>
-                </tbody>
-            </table>
-        </article>
-    </div>
-    
-    <!-- ============================ COMPONENT REGISTER   ================================= -->
+    <!-- ============================ COMPONENT REGISTER ================================= -->
     <div class="card mx-auto" style="max-width:520px; margin-top:40px;">
         <article class="card-body">
             {% include 'includes/alerts.html' %}
@@ -97,18 +59,18 @@
             <div class="text-center mb-3">
                 <!-- Google Sign-In Button -->
                 <div id="g_id_onload"
-                  data-client_id="163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
-                  data-context="signup"
-                  data-ux_mode="popup"
-                  data-callback="handleCredentialResponse"
-                  data-auto_prompt="false">
-              </div>
+                    data-client_id="163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
+                    data-context="signup"
+                    data-ux_mode="popup"
+                    data-callback="handleCredentialResponse"
+                    data-auto_prompt="false">
+                </div>
 
-              <div class="g_id_signin" data-type="standard"></div>
+                <div class="g_id_signin" data-type="standard"></div>
 
-              <!-- Microsoft Sign-In (You'll need separate integration for Microsoft) -->
-              <a href="#" class="btn btn-primary btn-block"><i class="fab fa-microsoft"></i> Sign up with Microsoft</a>
-          </div>
+                <!-- Microsoft Sign-In -->
+                <a href="#" class="btn btn-primary btn-block"><i class="fab fa-microsoft"></i> Sign up with Microsoft</a>
+            </div>
 
             <div class="text-center mb-3">
                 <small class="text-muted">Or sign up with email</small>
@@ -125,18 +87,9 @@
                     <input type="email" name="email" class="form-control" placeholder="Enter Email" required>
                 </div>
                 <div class="form-group">
-                    <label>Confirm Email Address <span style="color: red;">*</span></label>
-                    <input type="email" name="confirm_email" class="form-control" placeholder="Confirm Email" required>
-                </div>
-                <div class="form-group">
                     <label>Create Password <span style="color: red;">*</span></label>
                     <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
                 </div>
-                <div class="form-group">
-                    <label>Confirm Password <span style="color: red;">*</span></label>
-                    <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password" required>
-                </div>
-
                 <div class="form-group">
                     <button type="submit" class="btn btn-success btn-block"> Get Started for Free </button>
                 </div>
@@ -152,11 +105,13 @@
     </div>
 
     <p class="text-center mt-4">Have an account? <a href="{% url 'login' %}">Log In</a></p>
+
 </section>
-{% block extra_head %}
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-{% endblock %}
-{% block extra_scripts %}
+
+<!-- Google Sign-In Script -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<!-- JavaScript Handling Google Sign-In -->
 <script>
 function handleCredentialResponse(response) {
     console.log("Encoded JWT ID token: " + response.credential);
@@ -180,7 +135,6 @@ function handleCredentialResponse(response) {
     .catch(error => console.error("Error:", error));
 }
 </script>
-{% endblock %}
 
 {% endblock %}
 
