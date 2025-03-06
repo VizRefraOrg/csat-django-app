@@ -31,6 +31,7 @@
                 </thead>
                 <tbody>
                     <tr><td><strong>Price</strong> (Monthly)</td><td class="text-center" style="font-size: larger; color: #6f899d;">$50</td><td class="text-center" style="font-size: larger; color: #6f899d;">$200</td></tr>
+
                     <tr><td><strong>Free Trial</strong></td><td class="text-center">3 days</td><td class="text-center">7 days</td></tr>
                     <tr><td><strong>Max Rows per project</strong></td><td class="text-center">50K</td><td class="text-center">100K</td></tr>
                     <tr><td><strong>Columns per project</strong></td><td class="text-center">10</td><td class="text-center">20</td></tr>
@@ -45,96 +46,71 @@
             </table>
         </article>
     </div>
-
-    <!-- ============================ COMPONENT REGISTER ================================= -->
-    <div class="card mx-auto" style="max-width:520px; margin-top:40px;">
-        <article class="card-body">
-            {% include 'includes/alerts.html' %}
-            <header class="mb-4 text-center">
-                <h4 class="card-title">Create Your Account</h4>
-                <p class="text-muted">Start your <strong>3-day free trial</strong> today!</p>
-            </header>
-
-            <!-- Social Sign Up -->
-            <div class="text-center mb-3">
-                <!-- Google Sign-In Button -->
-                <div id="g_id_onload"
-                    data-client_id="163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
-                    data-context="signup"
-                    data-ux_mode="popup"
-                    data-callback="handleCredentialResponse"
-                    data-auto_prompt="false">
+    
+<!-- ============================ COMPONENT REGISTER   ================================= -->
+<div class="card mx-auto" style="max-width:520px; margin-top:40px;">
+    <article class="card-body">
+        {% include 'includes/alerts.html' %}
+        <header class="mb-4"><h4 class="card-title">Sign up</h4></header>
+        <form action="{% url 'register' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="col form-group">
+                    <label>First name <span style="color: red;">*</span></label>
+                    <input type="text" name="first_name" class="form-control" placeholder="Enter First Name" required>
                 </div>
-
-                <div class="g_id_signin" data-type="standard"></div>
-
-                <!-- Microsoft Sign-In -->
-                <a href="#" class="btn btn-primary btn-block"><i class="fab fa-microsoft"></i> Sign up with Microsoft</a>
-            </div>
-
-            <div class="text-center mb-3">
-                <small class="text-muted">Or sign up with email</small>
-            </div>
-
-            <form action="{% url 'register' %}" method="POST">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Full Name <span style="color: red;">*</span></label>
-                    <input type="text" name="full_name" class="form-control" placeholder="Enter Full Name" required>
+                <div class="col form-group">
+                    <label>Last name <span style="color: red;">*</span></label>
+                    <input type="text" name="last_name" class="form-control" placeholder="Enter Last Name" required>
                 </div>
-                <div class="form-group">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
                     <label>Email Address <span style="color: red;">*</span></label>
                     <input type="email" name="email" class="form-control" placeholder="Enter Email" required>
                 </div>
-                <div class="form-group">
-                    <label>Create Password <span style="color: red;">*</span></label>
-                    <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
+                <div class="form-group col-md-6">
+                    <label>Confirm Email Address <span style="color: red;">*</span></label>
+                    <input type="email" name="confirm_email" class="form-control" placeholder="Confirm Email" required>
                 </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-success btn-block"> Get Started for Free </button>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Phone Number</label>
+                    <input type="text" name="phone_number" class="form-control" placeholder="Enter Phone Number">
                 </div>
-            </form>
-        </article>
-    </div>
-
-    <!-- Trust Signals -->
-    <div class="text-center mt-4">
-        <p class="text-muted"><strong>✓ AI-Powered Insights</strong></p>
-        <p class="text-muted"><strong>✓ Secure Cloud Storage</strong></p>
-        <p class="text-muted"><strong>✓ Used by Top Businesses</strong></p>
-    </div>
-
-    <p class="text-center mt-4">Have an account? <a href="{% url 'login' %}">Log In</a></p>
-
+                <div class="form-group col-md-6">
+                    <label>Company</label>
+                    <input type="text" name="company" class="form-control" placeholder="Enter Company">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Address</label>
+                    <input type="text" name="address" class="form-control" placeholder="Enter Address">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Country <span style="color: red;">*</span></label>
+                    <input type="text" name="country" class="form-control" placeholder="Enter Country" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Create password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Enter Password">
+                </div>
+                <div class="form-group col-md-6">
+                    <label>Repeat password</label>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password">
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block"> Register </button>
+            </div>
+        </form>
+    </article>
+</div>
+<p class="text-center mt-4">Have an account? <a href="{% url 'login' %}">Log In</a></p>
+<br><br>
 </section>
-
-<!-- Google Sign-In Script -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<!-- JavaScript Handling Google Sign-In -->
-<script>
-function handleCredentialResponse(response) {
-    console.log("Encoded JWT ID token: " + response.credential);
-
-    fetch('{% url "google_auth_callback" %}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({ token: response.credential })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = data.redirect;
-        } else {
-            alert("Google authentication failed.");
-        }
-    })
-    .catch(error => console.error("Error:", error));
-}
-</script>
-
 {% endblock %}
-
