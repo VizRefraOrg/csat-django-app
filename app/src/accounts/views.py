@@ -357,15 +357,13 @@ def redirect_to_stripe(request):
 
     return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))
 
-#Google Auth Call back function
+
+
 GOOGLE_CLIENT_ID = "163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
-# Setup logging
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def google_auth_callback(request):
     try:
-        # Log request body for debugging
         logger.info("Received Google OAuth request.")
 
         data = json.loads(request.body)
@@ -382,7 +380,6 @@ def google_auth_callback(request):
             email = idinfo["email"]
             name = idinfo.get("name", "")
 
-            # Log email for debugging
             logger.info(f"Google Sign-In successful: {email}")
 
             # Create user if not exists
@@ -392,9 +389,9 @@ def google_auth_callback(request):
                 user.set_unusable_password()
                 user.save()
 
-            # Log user login
             logger.info(f"User {email} logged in.")
-            login(request, user)
+            auth_login(request, user)  # Use renamed `auth_login`
+
             return JsonResponse({"success": True, "redirect": "/dashboard/"})
 
         logger.error("Invalid token")
@@ -411,3 +408,4 @@ def google_auth_callback(request):
     except Exception as e:
         logger.exception("Unexpected server error")
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
