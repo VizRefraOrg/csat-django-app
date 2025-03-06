@@ -26,6 +26,15 @@ from loguru import logger
 from .forms import RegistrationForm, UserProfileUpdateForm
 from .models import Account, UploadedFile
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+import json
+import logging
+
 
 # logger = logging.getLogger(__name__)
 def heart_beat(request):
@@ -348,16 +357,7 @@ def redirect_to_stripe(request):
 
     return redirect(user.stripe_portal(return_url=request.META.get("HTTP_REFERER")))
 
-
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from django.contrib.auth import login
-from django.contrib.auth.models import User
-import json
-import logging
-
+#Google Auth Call back function
 GOOGLE_CLIENT_ID = "163047147866-bglvumvpnd3g9fuppk4vh02ld19i5pvk.apps.googleusercontent.com"
 # Setup logging
 logger = logging.getLogger(__name__)
