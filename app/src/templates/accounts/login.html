@@ -9,49 +9,59 @@
 
     <!-- ============================ COMPONENT LOGIN   ================================= -->
 
-{% if request.GET.command == 'verification' %}
+    {% if request.GET.command == 'verification' %}
 
-<div class="container mx-auto alert alert-info text-center" role="alert" style="max-width; 1024px; margin-top:100px;">
-    Thank You for registering with us. We have sent you a verification email to your email address [{{ request.GET.email }}]
-<br><br>
-Already verified? <a href="{% url 'login' %}">Login</a>
-</div>
+    <div class="container mx-auto alert alert-info text-center" role="alert"
+         style="max-width; 1024px; margin-top:100px;">
+        Thank You for registering with us. We have sent you a verification email to your email address [{{
+        request.GET.email }}]
+        <br><br>
+        Already verified? <a href="{% url 'login' %}">Login</a>
+    </div>
 
 
-{% else %}
+    {% else %}
 
-        <div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
+    <div class="card mx-auto" style="max-width: 380px; margin-top:100px;">
 
-          <div class="card-body">
-          <h4 class="card-title mb-4">Sign in</h4>
-          {% include 'includes/alerts.html' %}
-          <form action="{% url 'login' %}" method="POST">
-              {% csrf_token %}
-              <div class="form-group">
-                 <input type="email" class="form-control" placeholder="Email Address" name="email">
-              </div> <!-- form-group// -->
-              <div class="form-group">
-                <input type="password" class="form-control" placeholder="Password" name="password">
-              </div> <!-- form-group// -->
+        <div class="card-body">
+            <h4 class="card-title mb-4">Sign in</h4>
+            {% include 'includes/alerts.html' %}
+            <form action="{% url 'login' %}" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="email" class="form-control" placeholder="Email Address" name="email">
+                </div> <!-- form-group// -->
+                <div class="form-group">
+                    <input type="password" class="form-control" placeholder="Password" name="password">
+                </div> <!-- form-group// -->
 
-              <div class="form-group">
-                  <a href="{% url 'forgotPassword' %}" class="float-right">Forgot password?</a>
+                <div class="form-group">
+                    <a href="{% url 'forgotPassword' %}" class="float-right">Forgot password?</a>
 
-              </div> <!-- form-group form-check .// -->
-              <div class="form-group">
-                  <button type="submit" class="btn btn-primary btn-block"> Login  </button>
-              </div> <!-- form-group// -->
-          </form>
-          </div> <!-- card-body.// -->
-        </div> <!-- card .// -->
+                </div> <!-- form-group form-check .// -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary btn-block"> Login</button>
+                </div> <!-- form-group// -->
+            </form>
+        </div> <!-- card-body.// -->
+        <hr class="my-4">
+        <div class="card-body">
+            <h4 class="card-title mb-4">Login with</h4>
+            <div class="text-center mt-4">
+                <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-danger btn-block mb-2"><i class="fab fa-google mr-2"></i>Google</a>
+                <a href="{% url 'social:begin' 'azuread-oauth2' %}" class="btn btn-primary btn-block mb-2"><i class="fab fa-microsoft mr-2"></i>Microsoft</a>
+            </div>
+        </div>
+    </div> <!-- card .// -->
 
-         <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
-         <br><br>
+    <p class="text-center mt-4">Don't have account? <a href="{% url 'register' %}">Sign up</a></p>
+    <br><br>
     <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
 
-{% endif %}
+    {% endif %}
 
-    </section>
-    <!-- ========================= SECTION CONTENT END// ========================= -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
 
 {% endblock %}

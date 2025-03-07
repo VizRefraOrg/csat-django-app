@@ -26,6 +26,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("subscriptions/", include('subscriptions.urls')),
     path(r'health/', include('health_check.urls')),
+    path('auth/', include('social_django.urls', namespace='social')),
     path("", views.home)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
