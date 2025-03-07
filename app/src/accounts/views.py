@@ -81,6 +81,9 @@ def register(request):
 
 def login(request):
     # logger.info(request.user)
+    if request.user.is_authenticated:
+        return redirect("user_profile")
+
     if request.method == "POST":
         email = request.POST["email"]
         password = request.POST["password"]
