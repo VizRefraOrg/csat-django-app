@@ -117,6 +117,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <article class="card-body">
             {% include 'includes/alerts.html' %}
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
             <header class="mb-4"><h4 class="card-title">Sign up</h4></header>
             <form action="{% url 'register' %}" method="POST">
                 {% csrf_token %}
@@ -165,12 +174,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <div class="form-row">
                     <div class="form-group col-md-6">
                         <label>Create password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Enter Password">
+                        <input type="password" name="password" class="form-control" placeholder="Enter Password" required>
                     </div>
                     <div class="form-group col-md-6">
                         <label>Repeat password</label>
                         <input type="password" name="confirm_password" class="form-control"
-                               placeholder="Confirm Password">
+                               placeholder="Confirm Password" required>
                     </div>
                 </div>
                 <div class="form-group">
@@ -184,5 +193,3 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <img src="https://vivaboard.ai/wp-content/uploads/2025/04/moneyback.png" alt="SSL Secure" width="120" style="display: block; margin: 20px auto;" />
 </section>
 {% endblock %}
-
-
