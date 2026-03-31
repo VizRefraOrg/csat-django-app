@@ -54,6 +54,13 @@ def register(request):
             user.phone_number = phone_number
             user.save()
 
+            # Create user's blob storage container
+            try:
+                from accounts.azure_blob import ensure_user_container
+                ensure_user_container(user)
+            except Exception as e:
+                logger.error(f"Failed to create blob container for user {user.id}: {e}")
+
             # USER ACTIVATION
             current_site = get_current_site(request)
             mail_subject = "Please activate your account"
@@ -227,16 +234,28 @@ class FileUploadView(View):
             return JsonResponse({"error": "No file uploaded"}, status=400)
 
         try:
-            # Save the file to the model
-            uploaded_file = UploadedFile.objects.create(file=file, user=request.user)
-            logger.info(f"File saved: {uploaded_file.file.path}")
+            from accounts.azure_blob import upload_blob
+            from django.utils.timezone import now
+
+            timestamp = now().strftime("%Y%m%d%H%M%S")
+            blob_name = f"{timestamp}_{file.name}"
+            file_data = file.read()
+            blob_url = upload_blob(request.user, blob_name, file_data)
+
+            uploaded_file = UploadedFile.objects.create(
+                user=request.user,
+                blob_name=blob_name,
+                blob_url=blob_url,
+                blob_size=len(file_data),
+            )
+            logger.info(f"File uploaded to blob: {blob_name}")
 
             return JsonResponse(
                 {
                     "id": uploaded_file.id,
-                    "file": uploaded_file.file.name,
+                    "file": blob_name,
                     "uploaded_at": uploaded_file.uploaded_at,
-                    "file_url": uploaded_file.get_file_url(),
+                    "file_url": blob_url,
                     "user": uploaded_file.user.username,
                 },
                 status=201,
@@ -248,19 +267,27 @@ class FileUploadView(View):
 
 @login_required(login_url="login")
 def list_user_files(request):
-    # logger.info(request.user)
     user_files = UploadedFile.objects.filter(user=request.user)
-    files_data = [
-        {
-            "id": file.id,
-            "file_name": os.path.basename(file.file.name),
-            "uploaded_at": file.uploaded_at,
-            "file_path": file.file.path,
-            "file_size": file.file_size,
-            "checksum": file.file_checksum
-        }
-        for file in user_files if os.path.exists(file.file.path)
-    ]
+    files_data = []
+    for f in user_files:
+        if f.blob_name:
+            files_data.append({
+                "id": f.id,
+                "file_name": f.blob_name,
+                "uploaded_at": f.uploaded_at,
+                "file_path": f.blob_url or "",
+                "file_size": f.file_size,
+                "checksum": ""
+            })
+        elif f.file and os.path.exists(f.file.path):
+            files_data.append({
+                "id": f.id,
+                "file_name": os.path.basename(f.file.name),
+                "uploaded_at": f.uploaded_at,
+                "file_path": f.file.path,
+                "file_size": f.file_size,
+                "checksum": f.file_checksum
+            })
     return JsonResponse(files_data, safe=False)
 
 
@@ -272,15 +299,31 @@ class SelectFileView(View):
         file_path = request.POST.get('file_path')
         if file_path is None:
             return JsonResponse({"error": "file_path is required in request body"}, status=400)
-        elif not os.path.exists(file_path):
-            return JsonResponse({"error": "file_path doesn't exist"}, status=400)
-        else:
-            content_type = magic.from_file(file_path, mime=True)
-            file_to_send = ContentFile(open(file_path, "rb").read())
-            response = HttpResponse(file_to_send, content_type)
-            response['Content-Length'] = file_to_send.size
-            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+
+        # Check if this is a blob URL — serve from Azure Blob Storage
+        if file_path.startswith("https://"):
+            from accounts.azure_blob import download_blob
+            uploaded_file = UploadedFile.objects.filter(
+                user=request.user, blob_url=file_path
+            ).first()
+            if not uploaded_file:
+                return JsonResponse({"error": "File not found"}, status=404)
+            data, content_type = download_blob(request.user, uploaded_file.blob_name)
+            content_type = content_type or "application/octet-stream"
+            response = HttpResponse(data, content_type=content_type)
+            response['Content-Length'] = len(data)
+            response['Content-Disposition'] = f'attachment; filename="{uploaded_file.blob_name}"'
             return response
+
+        # Legacy local file path
+        if not os.path.exists(file_path):
+            return JsonResponse({"error": "file_path doesn't exist"}, status=400)
+        content_type = magic.from_file(file_path, mime=True)
+        file_to_send = ContentFile(open(file_path, "rb").read())
+        response = HttpResponse(file_to_send, content_type)
+        response['Content-Length'] = file_to_send.size
+        response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+        return response
 
 
 class UserProfileView(LoginRequiredMixin, TemplateView):

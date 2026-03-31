@@ -130,24 +130,25 @@ def user_directory_path(instance, filename):
 
 
 class UploadedFile(models.Model):
-    file = models.FileField(upload_to=user_directory_path)
+    file = models.FileField(upload_to=user_directory_path, null=True, blank=True)
+    blob_name = models.TextField(null=True, blank=True)
+    blob_url = models.URLField(max_length=1024, null=True, blank=True)
+    blob_size = models.BigIntegerField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="uploaded_files")
 
     def __str__(self):
-        return self.file.name
+        if self.blob_name:
+            return self.blob_name
+        return self.file.name if self.file else str(self.id)
 
     def get_file_url(self):
-        return os.path.join(settings.MEDIA_ROOT, self.file.name)
+        if self.blob_url:
+            return self.blob_url
+        return os.path.join(settings.MEDIA_ROOT, self.file.name) if self.file else ""
 
     @staticmethod
     def sizify(value):
-        """
-        Simple kb/mb/gb size snippet for templates:
-
-        {{ product.file.size|sizify }}
-        """
-        # value = ing(value)
         if value < 512000:
             value = value / 1024.0
             ext = 'Kb'
@@ -161,10 +162,16 @@ class UploadedFile(models.Model):
 
     @property
     def file_checksum(self):
+        if self.blob_name:
+            return ""
         with open(self.file.path, 'rb') as rb:
             data = rb.read()
             return hashlib.md5(data).hexdigest()
 
     @property
     def file_size(self):
-        return self.sizify(os.path.getsize(self.file.path))
+        if self.blob_size is not None:
+            return self.sizify(self.blob_size)
+        if self.file and os.path.exists(self.file.path):
+            return self.sizify(os.path.getsize(self.file.path))
+        return "0 Kb"

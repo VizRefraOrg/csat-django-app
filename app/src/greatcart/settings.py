@@ -220,3 +220,6 @@ STRIPE_PRICING_TABLE_ID = env.str("STRIPE_PRICING_TABLE_ID")
 
 STRIPE_PRICING_TABLE = '<script async src="https://js.stripe.com/v3/pricing-table.js"></script><stripe-pricing-table pricing-table-id="%s" publishable-key="%s"></stripe-pricing-table>' % (
     STRIPE_PRICING_TABLE_ID, STRIPE_PUBLIC_KEY)
+
+# Azure Blob Storage
+AZURE_STORAGE_CONNECTION_STRING = env.str("AZURE_STORAGE_CONNECTION_STRING", default="")
