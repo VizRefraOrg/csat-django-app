@@ -135,7 +135,7 @@ class UploadedFile(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="uploaded_files")
 
     def __str__(self):
-        return self.file
+        return self.file.name
 
     def get_file_url(self):
         return os.path.join(settings.MEDIA_ROOT, self.file.name)
