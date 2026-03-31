@@ -97,7 +97,7 @@ def login(request):
             # email_encode = base64.b64encode(email.encode("ascii"))
             url = request.META.get("HTTP_REFERER")
             params = dict(parse_qsl(urlsplit(url).query))
-            redirect_url = params.get(b'next', settings.STREAMLIT_URL)
+            redirect_url = params.get('next', settings.STREAMLIT_URL)
             # logger.info(request.session.session_key)
             # logger.info(csrf_token)
             # logger.info(redirect_url)
